@@ -2,9 +2,11 @@
 
 ## Overview
 
-Identity and Access Management is not a beginner topic—and that's exactly why it makes such a powerful project. In real organisations, everything is multi-account. This project demonstrates how to implement cross-account access properly, the way it's done in production environments.
+IAM misconfiguration is one of the leading causes of AWS security incidents. In real organisations, environments are multi-account by design — and managing access across those accounts securely requires more than just creating roles. This project implements a cross-account access model from scratch, documenting every architectural decision, the threats each control addresses, and where the implementation falls short of full production hardening.
 
-## Architecture Diagram
+---
+
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -45,7 +47,41 @@ Identity and Access Management is not a beginner topic—and that's exactly why 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## The Role Assumption Flow
+### Why This Design Was Chosen
+
+A centralised Security Account acts as the single point of origin for all privileged access. Rather than managing IAM users in each workload account individually, operators assume roles into target accounts from one place. This keeps the blast radius of a compromised credential contained to the Security Account and makes access patterns auditable in a single CloudTrail stream.
+
+The alternative — federated users or IAM users per account — was rejected because it creates credential sprawl, makes rotation difficult at scale, and produces fragmented audit logs across accounts.
+
+At scale, this pattern extends to AWS Organizations with SCPs applied at the OU level and StackSets used to deploy consistent role configurations across all member accounts.
+
+```
+                        ┌─────────────────┐
+                        │  SECURITY HUB   │
+                        │    ACCOUNT      │
+                        └────────┬────────┘
+                                 │
+           ┌─────────────────────┼─────────────────────┐
+           │                     │                     │
+           ▼                     ▼                     ▼
+    ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+    │   Prod OU    │     │   Dev OU     │     │  Sandbox OU  │
+    ├──────────────┤     ├──────────────┤     ├──────────────┤
+    │ ┌──────────┐ │     │ ┌──────────┐ │     │ ┌──────────┐ │
+    │ │Account 1 │ │     │ │Account 10│ │     │ │Account 50│ │
+    │ └──────────┘ │     │ └──────────┘ │     │ └──────────┘ │
+    │ ┌──────────┐ │     │ ┌──────────┐ │     │ ┌──────────┐ │
+    │ │Account 2 │ │     │ │Account 11│ │     │ │Account 51│ │
+    │ └──────────┘ │     │ └──────────┘ │     │ └──────────┘ │
+    └──────────────┘     └──────────────┘     └──────────────┘
+
+    At scale: AWS Organizations + SCPs + StackSets
+    deploy consistent roles across all accounts automatically
+```
+
+---
+
+## Role Assumption Flow
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -83,14 +119,11 @@ Identity and Access Management is not a beginner topic—and that's exactly why 
   └──────────────────┘
 ```
 
-## What You'll Build
+---
 
-### Account Structure
-- **Security Account**: Central hub for security operations
-- **Workload Account**: Represents production/application environments
-- **Logging Account**: Dedicated log archive (referenced in Project 5)
+## Implementation
 
-### Roles to Implement
+### Roles Implemented
 
 | Role | Purpose | Permissions | Trust |
 |------|---------|-------------|-------|
@@ -98,9 +131,11 @@ Identity and Access Management is not a beginner topic—and that's exactly why 
 | IncidentResponseRole | Active incident handling | EC2, VPC, IAM read + limited write | Security Account + MFA |
 | DeploymentRole | CI/CD deployments | Scoped to specific services | CI/CD pipeline role |
 
-## Implementation Steps
+### Trust Policy
 
-### Step 1: Set Up the Trust Relationship
+The trust policy defines who is allowed to assume a role. It lives in the target (workload) account and restricts assumption to a specific principal in the Security Account, with two additional conditions: an ExternalId to prevent confused deputy attacks, and an MFA requirement to ensure the assuming identity has completed a second factor.
+
+**Annotated breakdown:**
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -131,9 +166,34 @@ Identity and Access Management is not a beginner topic—and that's exactly why 
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Step 2: Create the Permission Policy
+**Deployable JSON:**
 
-Apply least privilege by scoping to exactly what's needed:
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::111111111111:root"
+      },
+      "Action": "sts:AssumeRole",
+      "Condition": {
+        "StringEquals": {
+          "sts:ExternalId": "UniqueSecretValue"
+        },
+        "Bool": {
+          "aws:MultiFactorAuthPresent": "true"
+        }
+      }
+    }
+  ]
+}
+```
+
+### Permission Policy (Least Privilege)
+
+The permission policy attached to the role defines what the assuming identity can do once inside the target account. Wildcard actions were explicitly avoided. Each permission maps to a specific operational need.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -156,36 +216,48 @@ Apply least privilege by scoping to exactly what's needed:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Step 3: Configure the Assuming Role
+### AssumeRole Permission (Security Account Side)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│              PERMISSION TO ASSUME (Security Account)            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  {                                                              │
-│    "Version": "2012-10-17",                                     │
-│    "Statement": [                                               │
-│      {                                                          │
-│        "Effect": "Allow",                                       │
-│        "Action": "sts:AssumeRole",                              │
-│        "Resource": [                                            │
-│          "arn:aws:iam::222222222222:role/SecurityAuditRole",   │
-│          "arn:aws:iam::333333333333:role/LogArchiveRole"       │
-│        ]                                                        │
-│      }                           ▲                              │
-│    ]                             │                              │
-│  }                               │                              │
-│                                  │                              │
-│         Explicitly list allowed roles ─┘                        │
-│         Never use wildcards here!                               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+The identity in the Security Account also needs an explicit permission to call `sts:AssumeRole`. Roles are listed individually — wildcards in the resource field here would allow assumption of any role in any account, which defeats the purpose entirely.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::222222222222:role/SecurityAuditRole",
+        "arn:aws:iam::333333333333:role/LogArchiveRole"
+      ]
+    }
+  ]
+}
 ```
 
-## Key Decisions to Document
+### Terraform Structure
 
-### Why Role Assumption Over Long-Lived Credentials?
+```
+01-iam-cross-account-access/
+├── terraform/
+│   ├── main.tf                    # Root module, provider config
+│   ├── variables.tf               # Account IDs, role names, external ID
+│   ├── outputs.tf                 # Role ARNs for reference
+│   ├── cross-account-roles.tf     # Role resources and trust policies
+│   ├── monitoring.tf              # CloudTrail alerting and EventBridge rules
+│   └── terraform.tfvars.example   # Example variable values, safe to commit
+├── docs/
+│   ├── architecture.md            # Extended design notes
+│   └── deployment-guide.md        # Step-by-step deployment instructions
+└── README.md
+```
+
+---
+
+## Security Controls
+
+### Why Role Assumption Over Long-Lived Credentials
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -201,36 +273,11 @@ Apply least privilege by scoping to exactly what's needed:
 └─────────────────────┴───────────────────────────────────────────┘
 ```
 
-### How Would This Scale?
+### ExternalId and the Confused Deputy Problem
 
-```
-                        ┌─────────────────┐
-                        │  SECURITY HUB   │
-                        │    ACCOUNT      │
-                        └────────┬────────┘
-                                 │
-           ┌─────────────────────┼─────────────────────┐
-           │                     │                     │
-           ▼                     ▼                     ▼
-    ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-    │   Prod OU    │     │   Dev OU     │     │  Sandbox OU  │
-    ├──────────────┤     ├──────────────┤     ├──────────────┤
-    │ ┌──────────┐ │     │ ┌──────────┐ │     │ ┌──────────┐ │
-    │ │Account 1 │ │     │ │Account 10│ │     │ │Account 50│ │
-    │ └──────────┘ │     │ └──────────┘ │     │ └──────────┘ │
-    │ ┌──────────┐ │     │ ┌──────────┐ │     │ ┌──────────┐ │
-    │ │Account 2 │ │     │ │Account 11│ │     │ │Account 51│ │
-    │ └──────────┘ │     │ └──────────┘ │     │ └──────────┘ │
-    │     ...      │     │     ...      │     │     ...      │
-    └──────────────┘     └──────────────┘     └──────────────┘
+Without an ExternalId condition, a third-party service that has been granted assume-role access could be tricked into assuming a role on behalf of a different customer — a confused deputy attack. The ExternalId acts as a shared secret between the two parties that only the legitimate caller knows. It does not replace MFA but defends a different threat vector.
 
-    At scale: Use AWS Organizations with SCPs + StackSets
-    to deploy consistent roles across all accounts
-```
-
-## Security Considerations
-
-### Risks of Over-Privileged Roles
+### Blast Radius of a Compromised Role
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -254,42 +301,48 @@ Apply least privilege by scoping to exactly what's needed:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Detection: What to Monitor
+### Detection: CloudTrail Events to Monitor
 
-```
-CloudTrail Events to Alert On:
-─────────────────────────────
-• AssumeRole from unexpected source IPs
-• AssumeRole failures (brute force attempts)
-• Role assumption outside business hours
-• Cross-account access from unapproved accounts
-• Changes to trust policies
-```
+| Event | What It Signals |
+|-------|----------------|
+| `AssumeRole` from unexpected IP | Credential theft or misuse |
+| `AssumeRole` failures | Brute force or misconfiguration |
+| Role assumption outside business hours | Anomalous access pattern |
+| Cross-account access from unapproved accounts | Trust policy misconfiguration or compromise |
+| Changes to trust policies (`UpdateAssumeRolePolicy`) | Privilege escalation attempt |
 
-## Deliverables Checklist
+---
 
-- [ ] Terraform code for cross-account role setup
-- [ ] Trust policies with proper conditions
-- [ ] Permission policies following least privilege
-- [ ] Documentation explaining design decisions
-- [ ] Diagram showing account relationships
-- [ ] Write-up on scaling considerations
-- [ ] Monitoring/alerting recommendations
+## Trade-offs
 
-## Questions to Answer in Your Documentation
+**Operational overhead:** Every new workload account requires a new role to be deployed and trust policies to be updated. Without automation via StackSets, this becomes a manual bottleneck at scale. The Terraform structure here assumes a small number of accounts — it would need to be refactored into a module called per-account for larger environments.
 
-1. **Why did you choose role assumption instead of long-lived credentials?**
-2. **How would this scale to 20 or 100 accounts?**
-3. **What risks exist if a role is over-privileged?**
-4. **How would you detect misuse?**
-5. **What happens if the Security Account is compromised?**
+**Session duration:** Temporary credentials are configured for a maximum of one hour. This is the most secure default but creates friction for long-running operational tasks. Extending session duration reduces security; the right balance depends on the operational context.
+
+**MFA dependency:** Requiring MFA on role assumption is the right call for human operators but breaks automation. CI/CD pipelines cannot interactively present an MFA token, so the `DeploymentRole` omits the MFA condition and relies on tightly scoped permissions and IP-based conditions instead. This is a deliberate trade-off, not an oversight.
+
+**ExternalId management:** The ExternalId must be stored and referenced securely. If it leaks, it loses its protective value. In this implementation it is passed via a Terraform variable — in production it should be pulled from a secrets manager at deploy time.
+
+---
+
+## Gaps and Improvements
+
+These are known limitations of this implementation relative to what a production environment would require:
+
+- **No SCP guardrails.** AWS Organizations SCPs should be applied at the OU level to enforce a ceiling on what any role in a member account can do, regardless of what its permission policy allows. This implementation does not include SCP definitions.
+- **No permission boundaries.** For environments where developers can create IAM roles themselves, permission boundaries prevent privilege escalation by capping the maximum permissions any role they create can have. Not implemented here.
+- **No automated role review.** IAM Access Analyzer should be configured to flag roles with unused permissions or overly permissive trust policies. This is not wired up in the Terraform.
+- **Static ExternalId.** The ExternalId is a static string. Rotating it requires coordinated updates on both sides of the trust. A more robust approach would use a time-based or per-session token.
+- **Alarms defined but not connected to notifications.** `monitoring.tf` implements CloudWatch metric filters and alarms for three scenarios — SecurityAuditRole assumption, IncidentResponseRole assumption (1-minute evaluation window, flagged URGENT), and failed role assumptions exceeding 3 in 5 minutes. However, no SNS action is attached to any alarm, meaning they trigger in CloudWatch but do not notify anyone. Wiring in an SNS topic ARN is the next step to make monitoring operational.
+- **Hardcoded CloudTrail log group.** `monitoring.tf` assumes the log group name is `/aws/cloudtrail/organization`. If this differs in your environment, the metric filters will silently fail to match any events. This should be a variable with the hardcoded value as a default.
+- **Single Security Account.** This design has no redundancy at the Security Account level. If the Security Account is compromised, all cross-account access flows through it. In practice, break-glass access (Project 6) should exist outside of this model.
+
+---
 
 ## Further Reading
 
 - [AWS Cross-Account Access](https://docs.aws.amazon.com/IAM/latest/UserGuide/tutorial_cross-account-with-roles.html)
 - [The Confused Deputy Problem](https://docs.aws.amazon.com/IAM/latest/UserGuide/confused-deputy.html)
 - [AWS Organizations Best Practices](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_best-practices.html)
-
----
-
-**Remember:** This project immediately signals maturity. Anyone reviewing your work can see that you understand how modern cloud environments are structured and why IAM mistakes are so dangerous.
+- [IAM Access Analyzer](https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html)
+- [Permission Boundaries](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_boundaries.html)
