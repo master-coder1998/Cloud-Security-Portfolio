@@ -125,11 +125,11 @@ At scale, this pattern extends to AWS Organizations with SCPs applied at the OU 
 
 ### Roles Implemented
 
-| Role | Purpose | Permissions | Trust |
-|------|---------|-------------|-------|
-| SecurityAuditRole | Read-only security review | SecurityAudit, ViewOnly | Security Account only |
-| IncidentResponseRole | Active incident handling | EC2, VPC, IAM read + limited write | Security Account + MFA |
-| DeploymentRole | CI/CD deployments | Scoped to specific services | CI/CD pipeline role |
+| Role | Purpose | Permissions | Trust Conditions |
+|------|---------|-------------|-----------------|
+| SecurityAuditRole | Read-only security review | SecurityAudit, ViewOnly managed policies | Security Account root + ExternalId + MFA |
+| IncidentResponseRole | Active incident handling | EC2, VPC, IAM read + limited write (scoped actions) | Security Account root + ExternalId + MFA + IP restriction |
+| DeploymentRole | CI/CD deployments | ECS, ECR, S3 (deployment bucket only) | Specific CI/CD role ARN + ExternalId (no MFA — automated pipeline) |
 
 ### Trust Policy
 
@@ -243,15 +243,17 @@ The identity in the Security Account also needs an explicit permission to call `
 ├── terraform/
 │   ├── main.tf                    # Root module, provider config
 │   ├── variables.tf               # Account IDs, role names, external ID
-│   ├── outputs.tf                 # Role ARNs for reference
+│   ├── outputs.tf                 # Role ARNs + ready-to-use CLI assume-role commands
 │   ├── cross-account-roles.tf     # Role resources and trust policies
-│   ├── monitoring.tf              # CloudTrail alerting and EventBridge rules
-│   └── terraform.tfvars.example   # Example variable values, safe to commit
+│   ├── monitoring.tf              # CloudWatch metric filters and alarms
+│   └── terraform.tfvars.example   # Example variable values — copy to terraform.tfvars before deploying
 ├── docs/
-│   ├── architecture.md            # Extended design notes
-│   └── deployment-guide.md        # Step-by-step deployment instructions
+│   ├── architecture.md            # Deep-dive: design decisions, compliance mapping, cost estimate, incident response
+│   └── deployment-guide.md        # Step-by-step deployment, testing, and maintenance guide
 └── README.md
 ```
+
+> After deploying, run `terraform output` to get pre-formatted AWS CLI commands for assuming each role. These are generated from the actual role ARNs and are ready to use.
 
 ---
 
@@ -276,6 +278,14 @@ The identity in the Security Account also needs an explicit permission to call `
 ### ExternalId and the Confused Deputy Problem
 
 Without an ExternalId condition, a third-party service that has been granted assume-role access could be tricked into assuming a role on behalf of a different customer — a confused deputy attack. The ExternalId acts as a shared secret between the two parties that only the legitimate caller knows. It does not replace MFA but defends a different threat vector.
+
+### IP Restriction on IncidentResponseRole
+
+The `IncidentResponseRole` includes an `aws:SourceIp` condition in its trust policy, restricting assumption to a defined list of CIDR ranges configured via `allowed_source_ips` in `variables.tf`. This role has limited write access — it can stop instances, revoke security group rules, and create snapshots — so the additional network-level control reduces the risk if credentials are stolen. The trade-off is that an incident responder working from an unexpected location (travel, home network) would be blocked. A documented break-glass procedure should cover this scenario.
+
+### DeploymentRole Trust Design
+
+The `DeploymentRole` intentionally omits MFA and IP conditions because it is assumed by an automated CI/CD pipeline, not a human. Instead, the trust policy restricts the principal to a specific CI/CD role ARN rather than the account root, which is a tighter trust boundary. Permissions are also scoped to only the named S3 deployment bucket by ARN rather than all S3 resources. These are deliberate compensating controls in place of MFA.
 
 ### Blast Radius of a Compromised Role
 
@@ -319,7 +329,7 @@ Without an ExternalId condition, a third-party service that has been granted ass
 
 **Session duration:** Temporary credentials are configured for a maximum of one hour. This is the most secure default but creates friction for long-running operational tasks. Extending session duration reduces security; the right balance depends on the operational context.
 
-**MFA dependency:** Requiring MFA on role assumption is the right call for human operators but breaks automation. CI/CD pipelines cannot interactively present an MFA token, so the `DeploymentRole` omits the MFA condition and relies on tightly scoped permissions and IP-based conditions instead. This is a deliberate trade-off, not an oversight.
+**MFA dependency:** Requiring MFA on role assumption is the right call for human operators but breaks automation. CI/CD pipelines cannot interactively present an MFA token, so the `DeploymentRole` omits the MFA condition and relies on a specific trusted role ARN, tightly scoped permissions, and a named S3 bucket restriction instead. This is a deliberate trade-off, not an oversight.
 
 **ExternalId management:** The ExternalId must be stored and referenced securely. If it leaks, it loses its protective value. In this implementation it is passed via a Terraform variable — in production it should be pulled from a secrets manager at deploy time.
 
@@ -334,7 +344,7 @@ These are known limitations of this implementation relative to what a production
 - **No automated role review.** IAM Access Analyzer should be configured to flag roles with unused permissions or overly permissive trust policies. This is not wired up in the Terraform.
 - **Static ExternalId.** The ExternalId is a static string. Rotating it requires coordinated updates on both sides of the trust. A more robust approach would use a time-based or per-session token.
 - **Alarms defined but not connected to notifications.** `monitoring.tf` implements CloudWatch metric filters and alarms for three scenarios — SecurityAuditRole assumption, IncidentResponseRole assumption (1-minute evaluation window, flagged URGENT), and failed role assumptions exceeding 3 in 5 minutes. However, no SNS action is attached to any alarm, meaning they trigger in CloudWatch but do not notify anyone. Wiring in an SNS topic ARN is the next step to make monitoring operational.
-- **Hardcoded CloudTrail log group.** `monitoring.tf` assumes the log group name is `/aws/cloudtrail/organization`. If this differs in your environment, the metric filters will silently fail to match any events. This should be a variable with the hardcoded value as a default.
+- **Hardcoded CloudTrail log group.** ~~`monitoring.tf` assumes the log group name is `/aws/cloudtrail/organization`. If this differs in your environment, the metric filters will silently fail to match any events. This should be a variable with the hardcoded value as a default.~~ **Fixed:** Now configurable via `cloudtrail_log_group` variable with `/aws/cloudtrail/organization` as the default.
 - **Single Security Account.** This design has no redundancy at the Security Account level. If the Security Account is compromised, all cross-account access flows through it. In practice, break-glass access (Project 6) should exist outside of this model.
 
 ---

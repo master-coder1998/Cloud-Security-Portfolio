@@ -13,3 +13,6 @@ allowed_source_ips = [
   "203.0.113.0/24",  # Corporate VPN
   "198.51.100.0/24"  # Office network
 ]
+
+# Optional: Override CloudTrail log group name if different
+# cloudtrail_log_group = "/aws/cloudtrail/my-org"

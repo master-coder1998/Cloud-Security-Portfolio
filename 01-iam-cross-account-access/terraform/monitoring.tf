@@ -2,7 +2,7 @@
 
 resource "aws_cloudwatch_log_metric_filter" "security_audit_role_assumption" {
   name           = "SecurityAuditRoleAssumption"
-  log_group_name = "/aws/cloudtrail/organization"
+  log_group_name = var.cloudtrail_log_group
   
   pattern = <<PATTERN
 {
@@ -33,7 +33,7 @@ resource "aws_cloudwatch_metric_alarm" "security_audit_role_assumption_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "failed_role_assumption" {
   name           = "FailedCrossAccountRoleAssumption"
-  log_group_name = "/aws/cloudtrail/organization"
+  log_group_name = var.cloudtrail_log_group
   
   pattern = <<PATTERN
 {
@@ -67,7 +67,7 @@ resource "aws_cloudwatch_metric_alarm" "failed_role_assumption_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "incident_response_role_assumption" {
   name           = "IncidentResponseRoleAssumption"
-  log_group_name = "/aws/cloudtrail/organization"
+  log_group_name = var.cloudtrail_log_group
   
   pattern = <<PATTERN
 {

@@ -36,3 +36,9 @@ variable "deployment_bucket" {
   description = "S3 bucket name for deployment artifacts"
   type        = string
 }
+
+variable "cloudtrail_log_group" {
+  description = "CloudWatch Logs group name for CloudTrail (used by monitoring metric filters)"
+  type        = string
+  default     = "/aws/cloudtrail/organization"
+}
