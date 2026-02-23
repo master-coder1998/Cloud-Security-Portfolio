@@ -48,6 +48,19 @@ Each project here is built around a real-world scenario, implemented with Terraf
 
 ## Projects Overview
 
+| # | Project | Domain | Key Skills |
+|---|---------|--------|------------|
+| 1 | [IAM Cross-Account Access](./01-iam-cross-account-access/) | Identity & Access Management | Multi-account architecture, least privilege, role assumption |
+| 2 | [VPC Infrastructure as Code](./02-vpc-infrastructure-as-code/) | Network Security | Terraform, network segmentation, security groups, NACLs |
+| 3 | [CI/CD Security Pipeline](./03-cicd-security-pipeline/) | DevSecOps | Shift-left security, policy as code, automated scanning |
+| 4 | [Cloud Security Audit](./04-cloud-security-audit/) | Compliance & Governance | Prowler, CIS benchmarks, risk prioritization, remediation planning |
+| 5 | [Centralized Logging](./05-centralized-logging/) | Visibility & Monitoring | CloudTrail, log immutability, S3 lifecycle policies, incident response |
+| 6 | [Break-Glass Access](./06-break-glass-access/) | Operations & Recovery | Emergency access procedures, governance controls, audit trails |
+| 7 | [Secrets Management](./07-secrets-management/) | Credential Hygiene | AWS Secrets Manager, rotation policies, blast radius reduction |
+| 8 | [Threat Modeling](./08-threat-modeling/) | Risk Analysis | STRIDE methodology, attack path mapping, control mapping |
+
+---
+
 ### 1. [IAM Cross-Account Access](./01-iam-cross-account-access/)
 **Domain:** Identity & Access Management  
 **Skills:** Multi-account architecture, least privilege, role assumption
@@ -162,6 +175,21 @@ Each project covers the following dimensions:
 - **Security controls** - what threats each control mitigates and its limitations
 - **Trade-offs** - cost, complexity, and operational overhead considerations
 - **Gaps and improvements** - honest assessment of what production hardening would require
+
+---
+
+## How to Use This Repository
+
+### Replicating a Project
+
+1. Navigate to the project folder and read the `README.md` thoroughly before touching any code
+2. Review the Terraform files and understand the resource relationships before applying
+3. Deploy into a dedicated AWS account or sandbox environment
+4. Document your own observations and any deviations from the original design
+
+### Extending a Project
+
+Each project `README.md` includes a section on known limitations and suggested extensions. These are intentional starting points for going deeper, not gaps to be ignored.
 
 ---
 
