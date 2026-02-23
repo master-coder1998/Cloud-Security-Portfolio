@@ -1,0 +1,15 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and fill in your values
+
+aws_region         = "us-east-1"
+environment        = "production"
+security_account_id = "111111111111"  # Replace with your security account ID
+external_id        = "unique-secret-value-12345"  # Generate a unique value
+cicd_role_arn      = "arn:aws:iam::111111111111:role/GitHubActionsRole"
+deployment_bucket  = "my-deployment-artifacts-bucket"
+
+# Optional: Restrict incident response role to specific IPs
+allowed_source_ips = [
+  "203.0.113.0/24",  # Corporate VPN
+  "198.51.100.0/24"  # Office network
+]
