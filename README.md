@@ -1,6 +1,8 @@
-# Cloud Security Portfolio
+# AWS Cloud Security Portfolio
 
-A collection of production-grade cloud security projects demonstrating real-world AWS security expertise. Each project includes working Terraform code, architectural documentation, and security best practices.
+**Ankita Dixit** | [GitHub](https://github.com/master-coder1998) | [LinkedIn](https://www.linkedin.com/in/ankita-dixit-8892b8185/)
+
+A collection of hands-on AWS cloud security projects built to demonstrate practical, production-oriented security engineering skills. Each project is independently implemented, documented with architectural reasoning, and reflects real-world trade-offs rather than tutorial-level work.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -9,7 +11,7 @@ A collection of production-grade cloud security projects demonstrating real-worl
 │                                                                             │
 │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
 │   │   Identity  │  │   Network   │  │   DevSecOps │  │  Compliance │       │
-│   │     & IAM   │  │   Security  │  │             │  │   & Audit   │       │
+│   │     & AM    │  │   Security  │  │             │  │   & Audit   │       │
 │   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘       │
 │          │                │                │                │              │
 │          ▼                ▼                ▼                ▼              │
@@ -34,73 +36,145 @@ A collection of production-grade cloud security projects demonstrating real-worl
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Projects
+---
 
-### ✅ 1. [IAM Cross-Account Access](./01-iam-cross-account-access/)
-**Status:** Implemented  
+## Why These Projects Matter
+
+Cloud security roles increasingly require candidates to demonstrate not just familiarity with tools, but the ability to reason through architecture decisions, assess risk, and implement controls in realistic environments. Certifications and course completions tell part of the story. Hands-on, documented work tells the rest.
+
+Each project here is built around a real-world scenario, implemented with Terraform, and documented with the reasoning behind every significant decision. The goal is not to show that steps were followed, but to demonstrate how a security engineer thinks when designing, building, and evaluating controls on AWS.
+
+---
+
+## Projects Overview
+
+### 1. [IAM Cross-Account Access](./01-iam-cross-account-access/)
 **Domain:** Identity & Access Management  
-**Skills:** Multi-account architecture, least privilege, role assumption, MFA enforcement
+**Skills:** Multi-account architecture, least privilege, role assumption
 
-Production-ready cross-account IAM roles with MFA enforcement, External ID protection, and CloudWatch monitoring. Demonstrates proper trust policies, least privilege access, and security monitoring.
+IAM misconfiguration is consistently one of the top causes of AWS security incidents. This project builds a cross-account role assumption model from scratch, enforcing least privilege at every boundary. It covers the reasoning behind trust policies, when to use permission boundaries versus SCPs, and how to audit role usage effectively.
 
-### 🔜 2. VPC Infrastructure as Code
+---
+
+### 2. [VPC Infrastructure as Code](./02-vpc-infrastructure-as-code/)
 **Domain:** Network Security  
 **Skills:** Terraform, network segmentation, security groups, NACLs
 
-### 🔜 3. CI/CD Security Pipeline
+Network design decisions made early are hard to undo at scale. This project provisions a production-style VPC with public, private, and isolated subnet tiers using Terraform. It addresses common mistakes like overly permissive security groups, flat network designs, and missing egress controls, and documents why each architectural choice was made.
+
+---
+
+### 3. [CI/CD Security Pipeline](./03-cicd-security-pipeline/)
 **Domain:** DevSecOps  
 **Skills:** Shift-left security, policy as code, automated scanning
 
-### 🔜 4. Cloud Security Audit
+Security checks that happen after deployment are too late. This project integrates static analysis, secrets detection, and policy-as-code validation directly into a GitHub Actions pipeline. It demonstrates how to fail builds on real risk without creating excessive noise that developers learn to ignore.
+
+---
+
+### 4. [Cloud Security Audit](./04-cloud-security-audit/)
 **Domain:** Compliance & Governance  
-**Skills:** Prowler, CIS benchmarks, risk prioritization
+**Skills:** Prowler, CIS benchmarks, risk prioritization, remediation planning
 
-### 🔜 5. Centralized Logging
+Running a security scanner and generating a report is the easy part. This project goes further by analyzing Prowler output against CIS AWS benchmarks, prioritizing findings by exploitability and blast radius, and producing structured remediation plans. The focus is on the judgment required to act on findings, not just identify them.
+
+---
+
+### 5. [Centralized Logging](./05-centralized-logging/)
 **Domain:** Visibility & Monitoring  
-**Skills:** CloudTrail, log immutability, incident response
+**Skills:** CloudTrail, log immutability, S3 lifecycle policies, incident response
 
-### 🔜 6. Break-Glass Access
+You cannot investigate what you did not log. This project establishes a centralized, tamper-resistant logging architecture across AWS services, covering CloudTrail, VPC Flow Logs, and S3 access logs. It also addresses log retention strategy, cross-account log aggregation, and how log architecture supports incident response.
+
+---
+
+### 6. [Break-Glass Access](./06-break-glass-access/)
 **Domain:** Operations & Recovery  
-**Skills:** Emergency access procedures, governance controls
+**Skills:** Emergency access procedures, governance controls, audit trails
 
-### 🔜 7. Secrets Management
+Every production environment needs a controlled way to grant elevated access in emergencies without creating standing privilege. This project designs and implements a break-glass access pattern with strict audit trails, automatic alerts on use, and a documented revocation process. It treats operational security as seriously as technical controls.
+
+---
+
+### 7. [Secrets Management](./07-secrets-management/)
 **Domain:** Credential Hygiene  
-**Skills:** AWS Secrets Manager, rotation policies
+**Skills:** AWS Secrets Manager, rotation policies, blast radius reduction
 
-### 🔜 8. Threat Modeling
+Hardcoded credentials and long-lived access keys are among the most exploited vulnerabilities in cloud environments. This project implements a secrets management architecture using AWS Secrets Manager, covering automatic rotation, application integration patterns, and how to scope access to minimize blast radius when a secret is compromised.
+
+---
+
+### 8. [Threat Modeling](./08-threat-modeling/)
 **Domain:** Risk Analysis  
-**Skills:** STRIDE methodology, attack path mapping
+**Skills:** STRIDE methodology, attack path mapping, control mapping
 
-## What Makes This Portfolio Different
+Technical controls are only as good as the threat model behind them. This project applies the STRIDE framework to a realistic AWS workload, maps out credible attack paths, and traces each threat to the controls that mitigate it. It demonstrates the ability to think offensively in order to defend more effectively.
 
-- **Production-Ready Code**: Not tutorials - actual deployable infrastructure
-- **Security Best Practices**: MFA, least privilege, monitoring, audit trails
-- **Architectural Reasoning**: Every decision documented and explained
-- **Real-World Thinking**: Trade-offs, scaling, incident response considerations
+---
 
-## Quick Start
+## Repository Structure
 
-```bash
-# Clone the repository
-git clone https://github.com/master-coder1998/Cloud-Security-Portfolio.git
-cd Cloud-Security-Portfolio
-
-# Navigate to a project
-cd 01-iam-cross-account-access/terraform
-
-# Deploy (after configuring terraform.tfvars)
-terraform init
-terraform plan
-terraform apply
 ```
+aws-cloud-security-portfolio/
+├── README.md
+├── 01-iam-cross-account-access/
+│   ├── README.md                      # Architecture decisions and trade-offs
+│   ├── terraform/                     # Infrastructure as code
+│   └── docs/                          # Supporting documentation
+├── 02-vpc-infrastructure-as-code/
+│   ├── README.md
+│   ├── terraform/
+│   └── docs/
+├── 03-cicd-security-pipeline/
+│   ├── README.md
+│   ├── .github/workflows/             # GitHub Actions pipeline configs
+│   └── policies/                      # OPA / security policies
+├── 04-cloud-security-audit/
+│   ├── README.md
+│   ├── reports/                       # Sample Prowler audit outputs
+│   └── remediation/                   # Remediation runbooks
+├── 05-centralized-logging/
+│   ├── README.md
+│   ├── terraform/
+│   └── docs/
+├── 06-break-glass-access/
+│   ├── README.md
+│   ├── terraform/
+│   └── runbooks/                      # Step-by-step operational procedures
+├── 07-secrets-management/
+│   ├── README.md
+│   ├── examples/                      # Secure vs insecure pattern comparisons
+│   └── terraform/
+└── 08-threat-modeling/
+    ├── README.md
+    ├── models/                        # Threat model documents
+    └── diagrams/                      # Architecture and attack path diagrams
+```
+
+---
+
+## Technical Scope
+
+Each project covers the following dimensions:
+
+- **Architecture** - why the design was chosen over alternatives
+- **Implementation** - Terraform-based infrastructure with inline comments explaining intent
+- **Security controls** - what threats each control mitigates and its limitations
+- **Trade-offs** - cost, complexity, and operational overhead considerations
+- **Gaps and improvements** - honest assessment of what production hardening would require
+
+---
 
 ## Prerequisites
 
-- AWS Account (free tier sufficient)
+- AWS Account (free tier is sufficient for most projects)
 - Terraform >= 1.0
-- AWS CLI configured
-- Basic AWS knowledge
+- AWS CLI configured with appropriate credentials
+- Git for version control
+- Basic familiarity with IAM, VPC, and AWS core services
+
+---
 
 ## License
 
-MIT License - Free to use for learning and portfolio building.
+MIT License. Free to use for learning and portfolio building with attribution.
