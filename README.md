@@ -1,6 +1,6 @@
 # Cloud Security Portfolio
 
-A collection of production-grade cloud security projects designed to demonstrate real-world expertise. These projects go beyond tutorials to showcase the thinking, trade-offs, and decision-making that define professional cloud security work.
+A collection of production-grade cloud security projects demonstrating real-world AWS security expertise. Each project includes working Terraform code, architectural documentation, and security best practices.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -9,7 +9,7 @@ A collection of production-grade cloud security projects designed to demonstrate
 │                                                                             │
 │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐       │
 │   │   Identity  │  │   Network   │  │   DevSecOps │  │  Compliance │       │
-│   │     & AM    │  │   Security  │  │             │  │   & Audit   │       │
+│   │     & IAM   │  │   Security  │  │             │  │   & Audit   │       │
 │   └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘       │
 │          │                │                │                │              │
 │          ▼                ▼                ▼                ▼              │
@@ -34,125 +34,73 @@ A collection of production-grade cloud security projects designed to demonstrate
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Why These Projects Matter
+## Projects
 
-The cloud security market has matured. Employers are no longer impressed by tool lists or certifications alone. They want evidence that you understand **real systems**, **real risks**, and **real trade-offs**.
+### ✅ 1. [IAM Cross-Account Access](./01-iam-cross-account-access/)
+**Status:** Implemented  
+**Domain:** Identity & Access Management  
+**Skills:** Multi-account architecture, least privilege, role assumption, MFA enforcement
 
-These projects work because they mirror how cloud security is practiced in the real world:
-- They show you can think beyond tutorials
-- They demonstrate understanding of scale and complexity
-- They prove you can communicate reasoning clearly
+Production-ready cross-account IAM roles with MFA enforcement, External ID protection, and CloudWatch monitoring. Demonstrates proper trust policies, least privilege access, and security monitoring.
 
-> **If you do just one or two projects at this depth, they will carry more weight than ten shallow labs.**
+### 🔜 2. VPC Infrastructure as Code
+**Domain:** Network Security  
+**Skills:** Terraform, network segmentation, security groups, NACLs
 
-## Projects Overview
+### 🔜 3. CI/CD Security Pipeline
+**Domain:** DevSecOps  
+**Skills:** Shift-left security, policy as code, automated scanning
 
-| # | Project | Domain | Key Skills Demonstrated |
-|---|---------|--------|------------------------|
-| 1 | [IAM Cross-Account Access](./01-iam-cross-account-access/) | Identity | Multi-account architecture, least privilege, role assumption |
-| 2 | [VPC Infrastructure as Code](./02-vpc-infrastructure-as-code/) | Network | Terraform, network segmentation, security groups |
-| 3 | [CI/CD Security Pipeline](./03-cicd-security-pipeline/) | DevSecOps | Shift-left security, policy as code, automation |
-| 4 | [Cloud Security Audit](./04-cloud-security-audit/) | Compliance | Prowler, risk prioritization, remediation planning |
-| 5 | [Centralized Logging](./05-centralized-logging/) | Visibility | Log architecture, immutability, incident response |
-| 6 | [Break-Glass Access](./06-break-glass-access/) | Operations | Emergency procedures, governance, audit trails |
-| 7 | [Secrets Management](./07-secrets-management/) | Credential Hygiene | Vault patterns, rotation, blast radius reduction |
-| 8 | [Threat Modeling](./08-threat-modeling/) | Risk Analysis | STRIDE, attack paths, control mapping |
+### 🔜 4. Cloud Security Audit
+**Domain:** Compliance & Governance  
+**Skills:** Prowler, CIS benchmarks, risk prioritization
 
-## How to Use This Repository
+### 🔜 5. Centralized Logging
+**Domain:** Visibility & Monitoring  
+**Skills:** CloudTrail, log immutability, incident response
 
-### For Learning
-1. Start with projects that align with your current skill level
-2. Read through the documentation before implementing
-3. Focus on understanding the "why" behind each decision
-4. Document your own thinking as you build
+### 🔜 6. Break-Glass Access
+**Domain:** Operations & Recovery  
+**Skills:** Emergency access procedures, governance controls
 
-### For Portfolio Building
-1. Fork this repository
-2. Implement each project in your own AWS/cloud environment
-3. Add your own documentation explaining your decisions
-4. Record a Loom walkthrough explaining your work
+### 🔜 7. Secrets Management
+**Domain:** Credential Hygiene  
+**Skills:** AWS Secrets Manager, rotation policies
 
-### For Interview Preparation
-1. Be ready to explain trade-offs in each design
-2. Understand how each project would scale
-3. Know the security implications of alternative approaches
-4. Practice explaining complex concepts simply
+### 🔜 8. Threat Modeling
+**Domain:** Risk Analysis  
+**Skills:** STRIDE methodology, attack path mapping
 
-## Repository Structure
+## What Makes This Portfolio Different
 
+- **Production-Ready Code**: Not tutorials - actual deployable infrastructure
+- **Security Best Practices**: MFA, least privilege, monitoring, audit trails
+- **Architectural Reasoning**: Every decision documented and explained
+- **Real-World Thinking**: Trade-offs, scaling, incident response considerations
+
+## Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/master-coder1998/Cloud-Security-Portfolio.git
+cd Cloud-Security-Portfolio
+
+# Navigate to a project
+cd 01-iam-cross-account-access/terraform
+
+# Deploy (after configuring terraform.tfvars)
+terraform init
+terraform plan
+terraform apply
 ```
-cloud-security-portfolio/
-├── README.md                          # This file
-├── 01-iam-cross-account-access/
-│   ├── README.md                      # Project documentation
-│   ├── terraform/                     # Infrastructure code
-│   └── docs/                          # Additional documentation
-├── 02-vpc-infrastructure-as-code/
-│   ├── README.md
-│   ├── terraform/
-│   └── docs/
-├── 03-cicd-security-pipeline/
-│   ├── README.md
-│   ├── .github/workflows/             # Pipeline configurations
-│   └── policies/                      # Security policies
-├── 04-cloud-security-audit/
-│   ├── README.md
-│   ├── reports/                       # Sample audit outputs
-│   └── remediation/                   # Remediation guides
-├── 05-centralized-logging/
-│   ├── README.md
-│   ├── terraform/
-│   └── docs/
-├── 06-break-glass-access/
-│   ├── README.md
-│   ├── terraform/
-│   └── runbooks/                      # Operational procedures
-├── 07-secrets-management/
-│   ├── README.md
-│   ├── examples/                      # Good vs bad patterns
-│   └── terraform/
-└── 08-threat-modeling/
-    ├── README.md
-    ├── models/                        # Threat model documents
-    └── diagrams/                      # Architecture diagrams
-```
-
-## Presenting Your Work
-
-### GitHub Best Practices
-- Write clear commit messages explaining your reasoning
-- Use pull requests even for personal projects to show workflow
-- Include relevant badges (Terraform validated, security scanned, etc.)
-
-### Video Walkthroughs
-Record a short Loom video where you:
-- Explain the scenario you're emulating
-- Walk through your key decisions
-- Discuss what you'd do differently in a real enterprise
-- Demonstrate the working implementation
-
-> This is incredibly powerful. You're no longer just a CV on a screen. You're demonstrating how you think, how you communicate, and how you reason about security under realistic constraints.
 
 ## Prerequisites
 
-- AWS Account (free tier works for most projects)
+- AWS Account (free tier sufficient)
 - Terraform >= 1.0
 - AWS CLI configured
-- Basic understanding of cloud concepts
-- Git for version control
-
-## Contributing
-
-Found an improvement? Have a suggestion? Contributions are welcome!
-
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request with clear description
+- Basic AWS knowledge
 
 ## License
 
-MIT License - Feel free to use these projects for learning and portfolio building.
-
----
-
-**Remember:** You are not trying to prove that you can follow instructions. You are proving that you can operate as a cloud security professional. That is what makes a profile stand out.
+MIT License - Free to use for learning and portfolio building.
