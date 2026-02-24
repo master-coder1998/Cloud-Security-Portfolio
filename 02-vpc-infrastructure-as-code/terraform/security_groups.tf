@@ -1,8 +1,8 @@
 # ALB Security Group
 resource "aws_security_group" "alb" {
-  name_description = "${var.environment}-alb-sg"
-  description      = "Security group for Application Load Balancer"
-  vpc_id           = aws_vpc.main.id
+  name_prefix = "${var.environment}-alb-sg-"
+  description = "Security group for Application Load Balancer"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "HTTPS from internet"
@@ -35,9 +35,9 @@ resource "aws_security_group" "alb" {
 
 # Application Security Group
 resource "aws_security_group" "app" {
-  name_description = "${var.environment}-app-sg"
-  description      = "Security group for application servers"
-  vpc_id           = aws_vpc.main.id
+  name_prefix = "${var.environment}-app-sg-"
+  description = "Security group for application servers"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description     = "From ALB only"
@@ -70,9 +70,9 @@ resource "aws_security_group" "app" {
 
 # Database Security Group
 resource "aws_security_group" "database" {
-  name_description = "${var.environment}-db-sg"
-  description      = "Security group for database servers"
-  vpc_id           = aws_vpc.main.id
+  name_prefix = "${var.environment}-db-sg-"
+  description = "Security group for database servers"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description     = "PostgreSQL from app servers only"
@@ -91,10 +91,10 @@ resource "aws_security_group" "database" {
 
 # Bastion Security Group (optional - for SSH access)
 resource "aws_security_group" "bastion" {
-  count            = var.enable_bastion ? 1 : 0
-  name_description = "${var.environment}-bastion-sg"
-  description      = "Security group for bastion host"
-  vpc_id           = aws_vpc.main.id
+  count       = var.enable_bastion ? 1 : 0
+  name_prefix = "${var.environment}-bastion-sg-"
+  description = "Security group for bastion host"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "SSH from allowed IPs"
