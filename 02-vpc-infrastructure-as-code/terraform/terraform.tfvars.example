@@ -1,0 +1,19 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and customize
+
+aws_region         = "us-east-1"
+environment        = "production"
+vpc_cidr           = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b"]
+
+# VPC Flow Logs retention
+flow_logs_retention_days = 30
+
+# Optional: Enable bastion host
+enable_bastion = false
+bastion_allowed_cidrs = [
+  # "203.0.113.0/24"  # Your office IP
+]
+
+# Optional: Enable ECR endpoints (adds cost)
+enable_ecr_endpoints = false
