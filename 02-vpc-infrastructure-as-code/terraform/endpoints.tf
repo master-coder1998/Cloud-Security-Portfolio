@@ -31,9 +31,9 @@ resource "aws_vpc_endpoint" "dynamodb" {
 
 # Security Group for Interface Endpoints
 resource "aws_security_group" "vpc_endpoints" {
-  name_description = "${var.environment}-vpc-endpoints-sg"
-  description      = "Security group for VPC interface endpoints"
-  vpc_id           = aws_vpc.main.id
+  name_prefix = "${var.environment}-vpc-endpoints-sg-"
+  description = "Security group for VPC interface endpoints"
+  vpc_id      = aws_vpc.main.id
 
   ingress {
     description = "HTTPS from VPC"
