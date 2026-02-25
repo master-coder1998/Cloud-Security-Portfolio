@@ -136,9 +136,8 @@ Security checks that happen after deployment are too late. This project demonstr
 
 ### GitHub Actions Workflows
 
-1. **security-scan.yml** - Main security pipeline
+1. **security-scan.yml** - Main security pipeline (includes IaC scanning)
 2. **dependency-check.yml** - Daily dependency scanning
-3. **iac-security.yml** - Terraform/IaC validation
 
 ### Security Tools Integration
 
