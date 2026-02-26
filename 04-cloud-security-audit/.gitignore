@@ -1,0 +1,37 @@
+# Prowler outputs
+*.json
+*.csv
+*.html
+*.ocsf
+prowler-output*
+
+# Reports (except samples)
+reports/*
+!reports/.gitkeep
+!reports/executive-summary-sample.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+ENV/
+
+# AWS credentials
+*.pem
+*.key
+credentials
+config
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
