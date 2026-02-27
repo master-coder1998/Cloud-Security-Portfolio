@@ -1,6 +1,5 @@
 # Project 5: Secure Logging and Centralised Visibility
 
-**Ankita Dixit** | [GitHub](https://github.com/master-coder1998) | [LinkedIn](https://www.linkedin.com/in/ankita-dixit-8892b8185/)
 
 ## Overview
 
