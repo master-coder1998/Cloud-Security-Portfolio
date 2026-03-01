@@ -1,0 +1,11 @@
+aws_region     = "us-east-1"
+environment    = "dev"
+project_name   = "secrets-mgmt"
+rotation_days  = 30
+
+tags = {
+  Project     = "SecretsManagement"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+  Owner       = "SecurityTeam"
+}
