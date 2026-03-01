@@ -63,13 +63,15 @@ resource "aws_iam_role_policy" "rotation_lambda" {
 }
 
 # Lambda function for rotation
+# Note: Run 'cd lambda && zip rotation.zip rotation.py' before terraform apply
 resource "aws_lambda_function" "rotate_secret" {
-  filename      = "${path.module}/lambda/rotation.zip"
-  function_name = "${var.project_name}-rotate-secret"
-  role          = aws_iam_role.rotation_lambda.arn
-  handler       = "rotation.lambda_handler"
-  runtime       = "python3.11"
-  timeout       = 30
+  filename         = "${path.module}/lambda/rotation.zip"
+  function_name    = "${var.project_name}-rotate-secret"
+  role             = aws_iam_role.rotation_lambda.arn
+  handler          = "rotation.lambda_handler"
+  runtime          = "python3.11"
+  timeout          = 30
+  source_code_hash = fileexists("${path.module}/lambda/rotation.zip") ? filebase64sha256("${path.module}/lambda/rotation.zip") : null
 
   environment {
     variables = {
@@ -78,6 +80,10 @@ resource "aws_lambda_function" "rotate_secret" {
   }
 
   tags = var.tags
+
+  lifecycle {
+    ignore_changes = [source_code_hash]
+  }
 }
 
 # Permission for Secrets Manager to invoke Lambda
